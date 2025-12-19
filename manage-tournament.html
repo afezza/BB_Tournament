@@ -25,6 +25,27 @@
     <script>
         var tournament = {};
 
+        async function downloadWebAppData() {
+
+            const dataToSend = {
+                info: "1",
+                command: "retrieve_tournament_data",
+            };
+
+            // Make the POST request using fetch
+            response = await fetch('https://hu5ceycoyggwpshcgjfdsqommi0naibv.lambda-url.eu-north-1.on.aws/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(dataToSend),
+            })
+            data = await response.json();
+            // console.log(data)
+
+            tournament = data["tournament"];
+        }
+
         function showView(view) {
             mainBody = document.getElementById("main-body");
             mainBody.removeChild(mainBody.children[0]);
@@ -33,6 +54,9 @@
 
         // webapp main
         document.addEventListener("DOMContentLoaded", async function () {
+            // Download all the required data
+            await downloadWebAppData();
+
             // Load the main page
             showView(loadManagePage());
         });
