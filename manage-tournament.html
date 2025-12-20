@@ -44,7 +44,6 @@
                 }
                 i += 1;
             });
-            // console.log(dataToSend)
 
             // Make the POST request using fetch
             response = await fetch('https://d2t6tpvmul5epr.cloudfront.net/', {
@@ -55,9 +54,15 @@
                 body: JSON.stringify(dataToSend),
             })
             data = await response.json();
-            // console.log(data)
+            if (data.hasOwnProperty("location")) {
+                window.location.replace(data["location"]);
+            }
 
+            // Parse received arrays to create iterable objects 
             tournament = data["tournament"];
+            tournament["players"] = JSON.parse(data["tournament"]["players"]);
+            tournament["rounds"] = JSON.parse(data["tournament"]["rounds"]);
+            tournament["playoff"] = JSON.parse(data["tournament"]["playoff"]);
         }
 
         function showView(view) {
