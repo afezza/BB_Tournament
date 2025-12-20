@@ -27,13 +27,27 @@
 
         async function downloadWebAppData() {
 
-            const dataToSend = {
-                info: "1",
+            let dataToSend = {
+                id: "",
+                arbiter_key: "",
                 command: "retrieve_tournament_data",
             };
 
+            const urlParams = new URLSearchParams(window.location.search);
+            let i = 0;
+            urlParams.forEach((value, key) => {
+                // console.log(key + ": " + value)
+                if (i === 0) {
+                    dataToSend["id"] = key;
+                } else if (i === 1) {
+                    dataToSend["arbiter_key"] = key;
+                }
+                i += 1;
+            });
+            // console.log(dataToSend)
+
             // Make the POST request using fetch
-            response = await fetch('https://hu5ceycoyggwpshcgjfdsqommi0naibv.lambda-url.eu-north-1.on.aws/', {
+            response = await fetch('https://d2t6tpvmul5epr.cloudfront.net/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
