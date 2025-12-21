@@ -25,13 +25,13 @@
     <script>
         var tournament = {};
 
-        async function downloadWebAppData() {
+        var dataToSend = {
+            id: "",
+            arbiter_key: "",
+            command: "",
+        };
 
-            let dataToSend = {
-                id: "",
-                arbiter_key: "",
-                command: "retrieve_tournament_data",
-            };
+        async function downloadWebAppData() {
 
             const urlParams = new URLSearchParams(window.location.search);
             let i = 0;
@@ -44,6 +44,7 @@
                 }
                 i += 1;
             });
+            dataToSend["command"] = "retrieve_tournament_data";
 
             // Make the POST request using fetch
             response = await fetch('https://d2t6tpvmul5epr.cloudfront.net/', {
