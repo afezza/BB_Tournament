@@ -130,6 +130,15 @@ function loadManagePage() {
     containerObj.classList.add('container');
     containerObj.innerHTML = pageContent.trim();
 
+    mainBody = document.getElementById("main-body");
+    mainBody.appendChild(containerObj);
+
+    document.getElementById("editRoundResModal").addEventListener('show.bs.modal', function (event) {
+        let match_id = event.relatedTarget.attributes["data-match-id"].value;
+        document.getElementById('editRoundResModalLabel').innerText = `Match ${match_id}`;
+        document.getElementById('editRoundResModalValue').innerText = document.getElementById(`${match_id}-players`).innerText;
+    })
+
     return containerObj
 }
 
