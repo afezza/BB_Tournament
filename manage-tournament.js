@@ -94,7 +94,7 @@ function loadManagePage() {
                 pageContent += `<li class="list-group-item" data-match-id="${match["id"]}" data-bs-toggle="modal" data-bs-target="#editRoundResModal">
                     <p class="text-center" style="margin: 0px">${match["id"]}</p>
                     <p class="text-center" id="${match["id"]}-players">${match["player_a"]} - ${match["player_b"]}</p>
-                    <p class="text-center" id="${match["id"]}-results" style="margin: 0px"> 0 - 0 </p>
+                    <p class="text-center" id="${match["id"]}-results" style="margin: 0px">${match["result_a"]} - ${match["result_b"]}</p>
                     </li>`;
             });
         });
@@ -118,7 +118,7 @@ function loadManagePage() {
                         </div>
                         <div class="modal-footer">
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="button" class="btn btn-primary" onclick="saveMatchRes()" data-bs-dismiss="modal">Save</button>
+                            <button type="button" id="save-match-res-btn" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
                         </div>
                     </div>
                 </div>
@@ -137,6 +137,7 @@ function loadManagePage() {
         let match_id = event.relatedTarget.attributes["data-match-id"].value;
         document.getElementById('editRoundResModalLabel').innerText = `Match ${match_id}`;
         document.getElementById('editRoundResModalValue').innerText = document.getElementById(`${match_id}-players`).innerText;
+        document.getElementById('save-match-res-btn').onclick = function () { saveMatchRes(match_id); };
     })
 
     return containerObj
@@ -291,13 +292,15 @@ function generateRounds() {
                         colA[i] = colA[i - 1] + 1;
                     }
                 }
-
             }
 
             let matches = [];
             for (let i = 0; i < gamesPerRound; i++) {
                 // let actualMatch = { "round": actRound, "game": i, "player_a": colA[i], "player_b": colB[i] } //easy to verify the indexes
-                let actualMatch = { "id": `R${actRound}-G${i + 1}`, "player_a": actualPlayersList[colA[i] - 1], "player_b": actualPlayersList[colB[i] - 1] }
+                let actualMatch = {
+                    "id": `R${actRound}-G${i + 1}`, "player_a": actualPlayersList[colA[i] - 1], "player_b": actualPlayersList[colB[i] - 1],
+                    "result_a": "0", "result_b": "0"
+                }
                 matches.push(actualMatch)
             }
             tournament["rounds"].push(matches)
@@ -324,7 +327,7 @@ function generateRounds() {
             pageContent += `<li class="list-group-item" data-match-id="${match["id"]}" data-bs-toggle="modal" data-bs-target="#editRoundResModal">
                 <p class="text-center" style="margin: 0px">${match["id"]}</p>
                 <p class="text-center" id="${match["id"]}-players">${match["player_a"]} - ${match["player_b"]}</p>
-                <p class="text-center" id="${match["id"]}-results" style="margin: 0px"> 0 - 0 </p>
+                <p class="text-center" id="${match["id"]}-results" style="margin: 0px">${match["result_a"]} - ${match["result_b"]}</p>
                 </li>`;
         });
     });
@@ -348,7 +351,7 @@ function generateRounds() {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" onclick="saveMatchRes()" data-bs-dismiss="modal">Save</button>
+                    <button type="button" id="save-match-res-btn" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
                 </div>
                 </div>
             </div>
@@ -366,5 +369,70 @@ function generateRounds() {
         let match_id = event.relatedTarget.attributes["data-match-id"].value;
         document.getElementById('editRoundResModalLabel').innerText = `Match ${match_id}`;
         document.getElementById('editRoundResModalValue').innerText = document.getElementById(`${match_id}-players`).innerText;
+        document.getElementById('save-match-res-btn').onclick = async function () { await saveMatchRes(match_id); };
     })
+    saveRoundsData();
 }
+
+async function saveRoundsData() {
+    dataToSend["command"] = "save_rounds_data";
+
+    let payload = { "players": tournament["players"], "rounds": tournament["rounds"] }
+    dataToSend["payload"] = JSON.stringify(payload);
+
+    // Make the POST request using fetch
+    response = await fetch('https://d2t6tpvmul5epr.cloudfront.net/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSend),
+    })
+    data = await response.json();
+
+    console.log(data)
+
+    // // Parse received arrays to create iterable objects 
+    // tournament = data["tournament"];
+    // tournament["players"] = JSON.parse(data["tournament"]["players"]);
+    // tournament["rounds"] = JSON.parse(data["tournament"]["rounds"]);
+    // tournament["playoff"] = JSON.parse(data["tournament"]["playoff"]);
+}
+
+
+async function saveMatchRes(match_id) {
+    dataToSend["command"] = "save_match_data";
+
+    tournament["rounds"].forEach((round, r_ind) => {
+        round.forEach((match, m_ind) => {
+            if (match["id"] === match_id) {
+                // match["result_a"] = document.getElementById('player-a-res').value
+                // match["result_b"] = document.getElementById('player-b-res').value
+                // document.getElementById(`${match_id}-results`).innerText = `${match["result_a"]} - ${match["result_b"]}`
+                let match_res = { ...match };
+                match_res["result_a"] = document.getElementById('player-a-res').value
+                match_res["result_b"] = document.getElementById('player-b-res').value
+                dataToSend["payload"] = JSON.stringify(match_res);
+            }
+        });
+    });
+
+    // Make the POST request using fetch
+    response = await fetch('https://d2t6tpvmul5epr.cloudfront.net/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dataToSend),
+    })
+    data = await response.json();
+
+    console.log(data)
+
+    // // Parse received arrays to create iterable objects 
+    // tournament = data["tournament"];
+    // tournament["players"] = JSON.parse(data["tournament"]["players"]);
+    // tournament["rounds"] = JSON.parse(data["tournament"]["rounds"]);
+    // tournament["playoff"] = JSON.parse(data["tournament"]["playoff"]);
+}
+
